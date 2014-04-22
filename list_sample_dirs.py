@@ -37,8 +37,26 @@ def parse_cycle_number(str):
     '''Given a directory name find the cycle number of the sample, or return False if not a valid sample name.'''
     # A valid sample directory should have a prefix ([a-zA-Z0-9_]), a
     # cycle number, and a date, separated by underscores.
-    logging.warning("Unimplemented.")
-    return False
+    substrs = str.split("_")
+    if len(substrs) < 3:
+        logging.warn(str + ": rejected, insufficient file segments.")
+        return False
+    date = substrs[-1]
+    cycle = substrs[-2]
+    if not is_valid_date(date):
+        logging.warning(str + ": rejected, invalid date segment.")
+        return False
+    if not is_valid_cycle(cycle):
+        logging.warning(str + ": rejected, invalid cycle number segment.")
+        return False
+
+    # alphanumerics only for the prefix elements; we've already split on the underscores
+    for each in substrs[0:len(substrs)-2]:
+        if None == re.match('^\w+$', each):
+            logging.warning(str + ": rejected, non-alphanumeric characters detected.")
+            return False
+        
+    return int(cycle[1:])
 
 def is_valid_date(str):
     '''Valid dates are strings of six digits.'''
@@ -82,13 +100,14 @@ def test_is_valid_date():
 
 def test_parse_cycle_number():
     logging.info( "Test parse_cycle_number")
-    invalid_subdirs = ["", "foobar", "a miscellaneous string", "bad prefix_C234_000000", "C002_130905", "PT000_Normal_C002__130905", "LA_C00_130905", "LA_001_130905"]
+    invalid_subdirs = ["", "foobar", "a miscellaneous string", "bad prefix_C234_000000", "C002_130905", "PT000_Normal_C002__130905", "LA_C00_130905", "LA_001_130905", "baddate_C123_9999", "badcycle_C12_123456"]
 
     for each in invalid_subdirs:
         assert not parse_cycle_number(each)
         
     valid_subdirs = {"PT000_Normal_C002_130905":2, "LA_C134_130902":134, "13006_C200_130912":200}
     for each in valid_subdirs.iterkeys():
+        logging.debug("Subdir: " + each + ", expects: " + str(valid_subdirs[each]))
         assert valid_subdirs[each] == parse_cycle_number(each)
 
 def test_list_sample_dirs():
