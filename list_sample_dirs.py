@@ -65,27 +65,27 @@ def list_sample_dirs(dir):
             print each
     return True
 
-def parse_cycle_number(str):
+def parse_cycle_number(sample):
     '''Given a directory name find the cycle number of the sample, or return False if not a valid sample name.'''
     # A valid sample directory should have a prefix ([a-zA-Z0-9_]), a
     # cycle number, and a date, separated by underscores.
-    substrs = str.split("_")
+    substrs = sample.split("_")
     if len(substrs) < 3:
-        logging.warn(str + ": rejected, insufficient file segments.")
+        logging.warn(sample + ": rejected, insufficient file segments.")
         return False
     date = substrs[-1]
     cycle = substrs[-2]
     if not is_valid_date(date):
-        logging.warning(str + ": rejected, invalid date segment.")
+        logging.warning(sample + ": rejected, invalid date segment.")
         return False
     if not is_valid_cycle(cycle):
-        logging.warning(str + ": rejected, invalid cycle number segment.")
+        logging.warning(sample + ": rejected, invalid cycle number segment.")
         return False
 
     # alphanumerics only for the prefix elements; we've already split on the underscores
     for each in substrs[0:len(substrs)-2]:
         if None == re.match('^\w+$', each):
-            logging.warning(str + ": rejected, non-alphanumeric characters detected.")
+            logging.warning(sample + ": rejected, non-alphanumeric characters detected.")
             return False
         
     return int(cycle[1:])
