@@ -22,16 +22,46 @@
 # Additional info: 
 # 1. Only search the top-most directory
 # 2. Multiple instances of CXXX in filenames are acceptable; use the
-#    final one as the cycle name if it's a valid strong.
+#    final one as the cycle name if it's a valid string.
 # 3. Don't worry about validating the date as long as it's a valid number.
 
-import logging, re
-logging.basicConfig(level=logging.DEBUG)
+import logging, re, os
+from collections import deque
+logging.basicConfig(level=logging.ERROR)
 
 def list_sample_dirs(dir):
     '''Given a directory, list all subdirectories (depth 1) that contain samples.'''
-    logging.warning("Unimplemented.")
-    return False
+    if not os.path.isdir(dir):
+        logging.warning(dir + ": Not a valid directory.")
+        return False
+    logging.debug( "Looking for samples in " + dir)
+
+    # Use a queue structure for the simple pseudo-sorting to keep
+    # track of the max sample number.  As we find valid sample
+    # directories, compare the cycle number with the max cycle number
+    # we've seen so far.  If it's greater, prepend that name;
+    # otherwise append.  This will keep the max in the first position
+    # of the queue.
+    subdirs = deque()
+    max_cycle = 0
+    for each in os.listdir(dir):
+        target = dir + "/" + each
+        if os.path.isdir(target):
+            result = parse_cycle_number(each)
+            if result != False:
+                # Not required, but if there are ties on the sample numbers, prepend those as well.
+                if result >= max_cycle:
+                    subdirs.appendleft(target)
+                    max_cycle = result
+                else:
+                    subdirs.append(target)
+            logging.debug("Target: " + target + "; result: " + str(result))
+
+    if len(subdirs) >= 1:
+        print "MAX: " + subdirs.popleft()
+        for each in subdirs:
+            print each
+    return True
 
 def parse_cycle_number(str):
     '''Given a directory name find the cycle number of the sample, or return False if not a valid sample name.'''
@@ -112,7 +142,7 @@ def test_parse_cycle_number():
 
 def test_list_sample_dirs():
     logging.info( "Test list_sample_dirs() on some expected directories that have no samples.")
-    list_sample_dirs("/var")
+    list_sample_dirs("/etc")
     list_sample_dirs(".")
     logging.info( "Test on the directory structure provided for this project.  MAX should be next to 13006_C200_130912.")
     list_sample_dirs("q1_test_data")
