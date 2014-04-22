@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Initial Problem description:
 
 # I have a folder that contains a number of subdirectories.  Some, but not
@@ -25,7 +27,7 @@
 #    final one as the cycle name if it's a valid string.
 # 3. Don't worry about validating the date as long as it's a valid number.
 
-import logging, re, os
+import logging, re, os, sys
 from collections import deque
 logging.basicConfig(level=logging.ERROR)
 
@@ -146,11 +148,17 @@ def test_list_sample_dirs():
     list_sample_dirs(".")
     logging.info( "Test on the directory structure provided for this project.  MAX should be next to 13006_C200_130912.")
     list_sample_dirs("q1_test_data")
-    
-if __name__ == "__main__":
+
+def test_all_fns():
     test_is_valid_cycle()
     test_is_valid_date()
     test_parse_cycle_number()
     test_list_sample_dirs()
-    
+
+def main(dirs):
+    for each in dirs:
+        list_sample_dirs(each)
+
+if __name__ == "__main__":
+    main(sys.argv)
 
