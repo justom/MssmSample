@@ -35,12 +35,48 @@ def upload_file_to_dropbox(src, dest):
     logging.warning("upload_file_to_dropbox: Unimplemented.")
     return None
 
+def test_upload_file():
+    assert not upload_file_to_dropbox("q2_test_data/dne.csv", "files/file1.txt")
+    # XXX - assert that the files don't exist on dropbox before running the functions.
+    assert upload_file_to_dropbox("q2_test_data/file1", "files/file1.txt")
+    assert upload_file_to_dropbox("q2_test_data/file2", "special_name.txt")
+    # XXX - assert that the files now exist on dropbox
+    # XXX - remove the files from dropbox
+    return
+
 def parse_csv_file(filename):
     '''Given a csv file, parse it into a collection of pairs of source
     files and their destinations.  For bad entries in the CSV file,
     log a warning and continue, rather than aborting.'''
     logging.warning("parse_csv_file: Unimplemented.")
     return None
+
+def test_parse_csv():
+    nonexistent_file = "q2_test_data/dne.csv"
+    empty_file = "q2_test_data/empty.csv"
+    invalid_file = "q2_test_data/invalid.txt"
+    mixed_file = "q2_test_data/mixed.csv"
+    good_file = "q2_test_data/files.csv"
+    
+    assert None == parse_csv_file(nonexistent_file)
+    assert None == parse_csv_file(empty_file)
+    assert None == parse_csv_file(invalid_file)
+
+    # the parse function should only ensure that the file format is
+    # valid, not whether the contents specify files that exist.  The
+    # uploading function will validate that the files exist before
+    # processing them.
+    result = parse_csv_file(mixed.csv)
+    assert len(result) == 4
+    assert result[0] == ['./q2_test_data/file1', 'files/file1.txt']
+    assert result[1] == ['./dne.csv', 'files/file1.txt']
+    assert result[2] == ['./q2_test_data/file2','special_name.txt']
+    assert result[3] == ['./q2_test_data/file2','another_place.txt']
+
+    result = parse_csv_file(good.csv)
+    assert len(result) == 2
+    assert result[0] == ['./q2_test_data/file1', 'files/file1.txt']
+    assert result[1] == ['./q2_test_data/file2','special_name.txt']
 
 def main(csv_file):
     '''Parse the CSV file and then for each result attempt to upload the file to dropbox.'''
