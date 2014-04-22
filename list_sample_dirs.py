@@ -42,9 +42,13 @@ def parse_cycle_number(str):
 
 def is_valid_date(str):
     '''Valid dates are strings of six digits.'''
+    if len(str) != 6:
+        return False
     # match \d{6}
-    logging.warning("Unimplemented.")
-    return False
+    if None == re.match('\d{6}', str):
+        return False
+
+    return True
 
 def is_valid_cycle(str):
     '''A valid cycle string is of the form CXXX where X are digits.'''
@@ -69,7 +73,7 @@ def test_is_valid_cycle():
 
 def test_is_valid_date():
     logging.info( "Test is_valid_date()")
-    bad_dates = ["", "0", "00", "00x", "1234", "C1234", "Cabc", 123456, "12354"]
+    bad_dates = ["", "0", "00", "00x", "1234", "C1234", "Cabc", "12354"]
     for each in bad_dates:
         assert not is_valid_date(each)
     good_dates = ["140422", "010101", "999999"]
