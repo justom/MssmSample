@@ -29,6 +29,27 @@ import logging
 logging.basicConfig(level=logging.WARNING)
 
 def list_sample_dirs(dir):
+    '''Given a directory, list all subdirectories (depth 1) that contain samples.'''
+    logging.warning("Unimplemented.")
+    return False
+
+def parse_cycle_number(str):
+    '''Given a directory name find the cycle number of the sample, or return False if not a valid sample name.'''
+    # A valid sample directory should have a prefix ([a-zA-Z0-9_]), a
+    # cycle number, and a date, separated by underscores.
+    logging.warning("Unimplemented.")
+    return False
+
+def is_valid_date(str):
+    '''Valid dates are strings of six digits.'''
+    # match \d{6}
+    logging.warning("Unimplemented.")
+    return False
+
+def is_valid_cycle(str):
+    '''A valid cycle string is of the form CXXX where X are digits.'''
+    # match C\d{3}
+    # make an assumption about 'c' vs 'C'
     logging.warning("Unimplemented.")
     return False
 
