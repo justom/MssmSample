@@ -23,21 +23,80 @@
 # code using the credentials above, be it via a command-line option, a config
 # file, or some other method.
 
-# Hard code these for now
-APP_KEY = 'leikm3a4vbv3h9n'
-APP_SECRET = 'gbwce6od65g3f9g'
 
-import sys, logging, os
-from dropbox import client, rest, session
+import sys, logging, os, cmd, re
+import json
+import locale
+import pprint
+import shlex
+import dropbox
+#from dropbox import client, rest, session
 
 logging.basicConfig(level=logging.DEBUG)
 
+# Hard code these for now
+APP_KEY = 'leikm3a4vbv3h9n'
+APP_SECRET = 'gbwce6od65g3f9g'
+STATE_FILE = 'dropbox_upload.json'
+
+# Put this in a class; global variables are to be avoided
+DB_CLIENT = None
+
+def load_state():
+    if not os.path.exists(STATE_FILE):
+        return {}
+    f = open(STATE_FILE, 'r')
+    state = json.load(f)
+    f.close()
+    return state
+
+def save_state(state):
+    f = open(STATE_FILE, 'w')
+    json.dump(state, f, indent=4)
+    f.close()
+
+def link_to_dropbox():
+    state = load_state()
+    uids = state.keys()
+    if len(uids) != 1:
+        auth_flow = dropbox.client.DropboxOAuth2FlowNoRedirect(APP_KEY, APP_SECRET)
+        
+        # Make the user log in and authorize this token
+        url = auth_flow.start()
+        sys.stdout.write("1. Go to: %s\n" % url)
+        sys.stdout.write("2. Authorize this app.\n")
+        sys.stdout.write("3. Enter the code below and press ENTER.\n")
+        auth_code = raw_input().strip()
+
+        access_token, user_id = auth_flow.finish(auth_code)
+        c = dropbox.client.DropboxClient(access_token)
+        account_info = c.account_info()
+
+        sys.stdout.write("Link successful. %s is uid %s\n" % (account_info['display_name'], account_info['uid']))
+
+        state = load_state()
+        state[account_info['uid']] = {
+        'access_token' : access_token,
+        'display_name' : account_info['display_name'],
+        }
+        
+        save_state(state)
+
+    uid = uids[0]
+    token = state[uid]['access_token']
+    logging.debug("token created: " + uid + ":" + token)
+
 def upload_file_to_dropbox(src, dest):
     '''Move the file specified in src to the destination specified on dropbox.'''
+    if not os.path.exists(src):
+        logging.warning('Upload file: ' + src + ': file does not exist.')
+        return None
+
     logging.warning("upload_file_to_dropbox: Unimplemented.")
-    return None
+    return None    
 
 def test_upload_file():
+    link_to_dropbox()
     assert not upload_file_to_dropbox("q2_test_data/dne.csv", "files/file1.txt")
     # XXX - assert that the files don't exist on dropbox before running the functions.
     assert upload_file_to_dropbox("q2_test_data/file1", "files/file1.txt")
@@ -104,10 +163,11 @@ def test_parse_csv():
     assert len(result) == 2
     assert result[0] == ['./q2_test_data/file1', 'files/file1.txt']
     assert result[1] == ['./q2_test_data/file2','special_name.txt']
-
+    
 def main(csv_file):
     '''Parse the CSV file and then for each result attempt to upload the file to dropbox.'''
     test_parse_csv()
+    test_upload_file()
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
