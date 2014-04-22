@@ -53,6 +53,43 @@ def is_valid_cycle(str):
     logging.warning("Unimplemented.")
     return False
 
-if __name__ == "__main__":
+def test_is_valid_cycle():
+    bad_cycles = ["", "0", "00", "00x", "1234", "C1234", "Cabc", 1234]
+    for each in bad_cycles:
+        assert not is_valid_cycle(each)
+    good_cycles = ["C000", "C999", "C123"]
+    for each in good_cycles:
+        assert is_valid_cycle(each)
+
+def test_is_valid_date():
+    bad_dates = ["", "0", "00", "00x", "1234", "C1234", "Cabc", 123456, "12354"]
+    for each in bad_dates:
+        assert not is_valid_date(each)
+    good_dates = ["140422", "010101", "999999"]
+    for each in good_dates:
+        assert is_valid_date(each)
+
+def test_parse_cycle_number():
+    invalid_subdirs = ["", "foobar", "a miscellaneous string", "bad prefix_C234_000000", "C002_130905", "PT000_Normal_C002__130905", "LA_C00_130905", "LA_001_130905"]
+
+    for each in invalid_subdirs:
+        assert not parse_cycle_number(each)
+        
+    valid_subdirs = {"PT000_Normal_C002_130905":2, "LA_C134_130902":134, "13006_C200_130912":200}
+    for each in valid_subdirs.iterkeys():
+        assert valid_subdirs[each] == parse_cycle_number(each)
+
+def test_list_sample_dirs():
+    print "Test on some expected directories that have no samples."
+    list_sample_dirs("/var")
     list_sample_dirs(".")
+    print "Test on the directory structure provided for this project.  MAX should be next to 13006_C200_130912."
+    list_sample_dirs("q1_test_data")
+    
+if __name__ == "__main__":
+    test_is_valid_cycle()
+    test_is_valid_date()
+    test_parse_cycle_number()
+    test_list_sample_dirs()
+    
 
