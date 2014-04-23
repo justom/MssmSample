@@ -52,12 +52,12 @@ def save_state(state):
     json.dump(state, f, indent=4)
     f.close()
 
-def link_to_dropbox():
+def link_to_dropbox(key, secret):
     state = load_state()
     uids = state.keys()
     client = None
     if len(uids) != 1:
-        auth_flow = dropbox.client.DropboxOAuth2FlowNoRedirect(APP_KEY, APP_SECRET)
+        auth_flow = dropbox.client.DropboxOAuth2FlowNoRedirect(key, secret)
         
         # Make the user log in and authorize this token
         url = auth_flow.start()
@@ -101,8 +101,8 @@ def upload_file_to_dropbox(client, src, dest):
     client.put_file('/' + dest, from_file)
     return True
 
-def test_upload_file():
-    client = link_to_dropbox()
+def test_upload_file(key,secret):
+    client = link_to_dropbox(key,secret)
 
     # test that the method fails with an invalid client
     assert not upload_file_to_dropbox(None, "q2_test_data/file1", "file")
@@ -191,15 +191,24 @@ def test_parse_csv():
     assert len(result) == 2
     assert result[0] == ['./q2_test_data/file1', 'files/file1.txt']
     assert result[1] == ['./q2_test_data/file2','special_name.txt']
-    
-def main(csv_file):
-    '''Parse the CSV file and then for each result attempt to upload the file to dropbox.'''
+
+def test_all_functions(key, secret):
     test_parse_csv()
-    test_upload_file()
+    test_upload_file(key, secret)
+
+def main(csv_file, key, secret):
+    '''Parse the CSV file and then for each result attempt to upload the file to dropbox.'''
+    logging.debug("Uploading files from " + csv_file)
+    files_to_upload = parse_csv_file(csv_file)
+    if len(files_to_upload) > 0:
+        client = link_to_dropbox(key,secret)
+        for src,dest in files_to_upload:
+            print src, dest
+            upload_file_to_dropbox(client,src,dest)
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        main(sys.argv[1])
+        main(sys.argv[1], APP_KEY, APP_SECRET)
     else:
         logging.error("Usage: dropbox_upload path_to_csv_file")
 
