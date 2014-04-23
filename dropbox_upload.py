@@ -80,9 +80,10 @@ def link_to_dropbox(key, secret):
         
         save_state(state)
 
+    uids = state.keys()
     uid = uids[0]
     token = state[uid]['access_token']
-    logging.debug("token created: " + uid + ":" + token)
+    logging.debug("token created: " + str(uid) + ":" + token)
     if client is None:
         client = dropbox.client.DropboxClient(token)
     return client
