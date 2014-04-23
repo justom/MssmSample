@@ -34,9 +34,9 @@ import dropbox
 
 logging.basicConfig(level=logging.DEBUG)
 
-# Hard code these for now
-APP_KEY = 'leikm3a4vbv3h9n'
-APP_SECRET = 'gbwce6od65g3f9g'
+# Key and Secret values can be supplied here or on the command line
+APP_KEY = ''
+APP_SECRET = ''
 STATE_FILE = 'dropbox_upload.json'
 
 def load_state():
