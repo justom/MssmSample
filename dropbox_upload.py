@@ -39,9 +39,6 @@ APP_KEY = 'leikm3a4vbv3h9n'
 APP_SECRET = 'gbwce6od65g3f9g'
 STATE_FILE = 'dropbox_upload.json'
 
-# Put this in a class; global variables are to be avoided
-DB_CLIENT = None
-
 def load_state():
     if not os.path.exists(STATE_FILE):
         return {}
@@ -58,6 +55,7 @@ def save_state(state):
 def link_to_dropbox():
     state = load_state()
     uids = state.keys()
+    client = None
     if len(uids) != 1:
         auth_flow = dropbox.client.DropboxOAuth2FlowNoRedirect(APP_KEY, APP_SECRET)
         
@@ -69,8 +67,8 @@ def link_to_dropbox():
         auth_code = raw_input().strip()
 
         access_token, user_id = auth_flow.finish(auth_code)
-        c = dropbox.client.DropboxClient(access_token)
-        account_info = c.account_info()
+        client = dropbox.client.DropboxClient(access_token)
+        account_info = client.account_info()
 
         sys.stdout.write("Link successful. %s is uid %s\n" % (account_info['display_name'], account_info['uid']))
 
@@ -85,9 +83,13 @@ def link_to_dropbox():
     uid = uids[0]
     token = state[uid]['access_token']
     logging.debug("token created: " + uid + ":" + token)
+    if client is None:
+        client = dropbox.client.DropboxClient(token)
+    return client
 
-def upload_file_to_dropbox(src, dest):
+def upload_file_to_dropbox(client, src, dest):
     '''Move the file specified in src to the destination specified on dropbox.'''
+    
     if not os.path.exists(src):
         logging.warning('Upload file: ' + src + ': file does not exist.')
         return None
@@ -96,13 +98,35 @@ def upload_file_to_dropbox(src, dest):
     return None    
 
 def test_upload_file():
-    link_to_dropbox()
-    assert not upload_file_to_dropbox("q2_test_data/dne.csv", "files/file1.txt")
-    # XXX - assert that the files don't exist on dropbox before running the functions.
-    assert upload_file_to_dropbox("q2_test_data/file1", "files/file1.txt")
-    assert upload_file_to_dropbox("q2_test_data/file2", "special_name.txt")
-    # XXX - assert that the files now exist on dropbox
-    # XXX - remove the files from dropbox
+    client = link_to_dropbox()
+
+    # test that the method fails with an invalid client
+    assert not upload_file_to_dropbox(None, "q2_test_data/file1", "file")
+    
+    # test that trying to upload a non-existent file returns None
+    assert not upload_file_to_dropbox(client, "q2_test_data/dne.csv", "files/file1.txt")
+
+    # Ensure that the targets don't exist on dropbox before running the functions.
+    logging.debug("Look to see if files exist")
+    upload_dests = ["files/file1.txt","special_name.txt"]
+    for f in upload_dests:
+        filename = f.split('/')[-1]
+        logging.debug( "looking for: " + filename)
+        results = client.search("/", filename)
+        assert len(results) == 0
+
+    logging.debug("Now upload a test file to the destinations.")
+    for f in upload_dests:
+        assert upload_file_to_dropbox(client, "q2_test_data/file1", f)
+
+    # Ensure that the files exist on dropbox, and clean up
+    for f in upload_dests:
+        filename = f.split('/')[-1]
+        results = client.search("/", filename)
+        assert len(results) == 1
+        logging.debug(results)
+        # having verified that the file exists, remove it, since this is the test program
+        client.file_delete("/" + f)
     return
 
 def parse_csv_file(filename):
