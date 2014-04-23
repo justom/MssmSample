@@ -90,12 +90,16 @@ def link_to_dropbox():
 def upload_file_to_dropbox(client, src, dest):
     '''Move the file specified in src to the destination specified on dropbox.'''
     
+    if client is None:
+        logging.warning('called upload_file_to_dropbox with invalid client')
+        return None
     if not os.path.exists(src):
         logging.warning('Upload file: ' + src + ': file does not exist.')
         return None
 
-    logging.warning("upload_file_to_dropbox: Unimplemented.")
-    return None    
+    from_file = open(os.path.expanduser(src), "rb")
+    client.put_file('/' + dest, from_file)
+    return True
 
 def test_upload_file():
     client = link_to_dropbox()
