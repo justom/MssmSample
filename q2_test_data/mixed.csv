@@ -1,0 +1,6 @@
+./q2_test_data/file1,files/file1.txt
+./dne.csv,files/file1.txt
+./q2_test_data/file2,special_name.txt
+miscellaneous text,files/file1.txt
+more miscellaneous text
+./q2_test_data/file2,another_place.txt
