@@ -198,17 +198,19 @@ def test_all_functions(key, secret):
 
 def main(csv_file, key, secret):
     '''Parse the CSV file and then for each result attempt to upload the file to dropbox.'''
-    logging.debug("Uploading files from " + csv_file)
+    logging.debug("Uploading files from " + csv_file + "with key, secret: " + key + "," + secret)
     files_to_upload = parse_csv_file(csv_file)
     if len(files_to_upload) > 0:
         client = link_to_dropbox(key,secret)
         for src,dest in files_to_upload:
-            print src, dest
+            logging.debug("uploading from " + src + " to " + dest)
             upload_file_to_dropbox(client,src,dest)
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
         main(sys.argv[1], APP_KEY, APP_SECRET)
+    elif len(sys.argv) == 4:
+        main(sys.argv[1], sys.argv[2], sys.argv[3])
     else:
-        logging.error("Usage: dropbox_upload path_to_csv_file")
+        logging.error("Usage: dropbox_upload path_to_csv_file [DROPBOX_KEY DROPBOX_SECRET]")
 
