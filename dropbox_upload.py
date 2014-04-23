@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# Problem Definition:
 # I have a file called ``files.csv``, which contains a list of files I want
 # uploaded to Dropbox.  Each line contains a comma-separated pair of values: the
 # first is the path of a file on your local machine, and the second is the path
@@ -12,33 +13,22 @@
 # for interactive input to perform user authentication.  This is absolutely fine;
 # don't kill yourself delving into the underlying OAuth API.
 
-# For testing purposes, we have a Dropbox folder set up called PBGCodingTest,
-# with the following credentials::
-
-#     App key: leikm3a4vbv3h9n
-#     App secret: gbwce6od65g3f9g
-
-# Don't feel like you have to use it; it is okay to just roll your own testing
-# environment.  However, please provide some mechanism to allow us to run your
-# code using the credentials above, be it via a command-line option, a config
-# file, or some other method.
-
-
 import sys, logging, os, cmd, re
 import json
 import locale
 import pprint
 import shlex
 import dropbox
-#from dropbox import client, rest, session
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 # Key and Secret values can be supplied here or on the command line
 APP_KEY = ''
 APP_SECRET = ''
 STATE_FILE = 'dropbox_upload.json'
 
+# A bit of convenient authentication state saving; taken from one of
+# the example programs shipped with the Dropbox API
 def load_state():
     if not os.path.exists(STATE_FILE):
         return {}
@@ -70,7 +60,7 @@ def link_to_dropbox(key, secret):
         client = dropbox.client.DropboxClient(access_token)
         account_info = client.account_info()
 
-        sys.stdout.write("Link successful. %s is uid %s\n" % (account_info['display_name'], account_info['uid']))
+        logging.info("Link successful. %s is uid %s\n" % (account_info['display_name'], account_info['uid']))
 
         state = load_state()
         state[account_info['uid']] = {
@@ -80,11 +70,10 @@ def link_to_dropbox(key, secret):
         
         save_state(state)
 
-    uids = state.keys()
-    uid = uids[0]
-    token = state[uid]['access_token']
-    logging.debug("token created: " + str(uid) + ":" + token)
-    if client is None:
+    else:
+        uid = uids[0]
+        token = state[uid]['access_token']
+        logging.info("token created: " + str(uid) + ":" + token)
         client = dropbox.client.DropboxClient(token)
     return client
 
